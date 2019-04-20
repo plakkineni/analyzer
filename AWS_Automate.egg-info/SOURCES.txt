@@ -1,0 +1,9 @@
+README.md
+setup.py
+AWS_Automate.egg-info/PKG-INFO
+AWS_Automate.egg-info/SOURCES.txt
+AWS_Automate.egg-info/dependency_links.txt
+AWS_Automate.egg-info/entry_points.txt
+AWS_Automate.egg-info/requires.txt
+AWS_Automate.egg-info/top_level.txt
+snapshot/aws.py

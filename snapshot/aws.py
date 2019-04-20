@@ -18,11 +18,82 @@ def filter_instances(project):
 
  return instances
 
-
 @click.group()
+def cli():
+  """ Volumes & Instances """
+
+@cli.group('volumes')
+def volumes():
+ """Commands for volumes"""
+
+@cli.group('instances')
 def cinstances():
   """Commands for instances"""
 
+@cli.group('snap')
+def snap():
+  """ COmmands for snaps"""
+
+@snap.command('create')
+@click.option('--project',default='none',help='Enter Project Tag Name')
+def createsnap(project):
+ "Snap the volumes of the project"
+ instances=filter_instances(project)
+
+ for ec in instances:
+  ec.stop()
+  ec.wait_until_stopped()
+  for vol in ec.volumes.all():
+    print("Creating snapshot of volume {0} Instance: {1}.....".format(vol.id,ec.id))
+    vol.create_snapshot()
+    print(" Starting Instance {0}.....".format(ec.id))
+    ec.start()
+    ec.wait_until_running()
+
+ return
+
+
+@snap.command('delete')
+@click.option('--project',default='none',help='Enter Project Tag Name')
+def deletesnap(project):
+ "Delete the snaps of volumes"
+ instances=filter_instances(project)
+
+ for ec in instances:
+  for vol in ec.volumes.all():
+   for snap in vol.snapshots.all():
+     print("Deleting snapshot {0}.....".format(snap.snapshot_id))
+     snap.delete()
+
+ return
+
+
+
+@snap.command('list')
+@click.option('--project',default='none',help='Enter Project Tag Name')
+def deletesnap(project):
+ "List the snaps of volumes"
+ instances=filter_instances(project)
+
+ for ec in instances:
+  for vol in ec.volumes.all():
+   for snap in vol.snapshots.all():
+    print(' : '.join((snap.snapshot_id,snap.volume_id,ec.id)))
+
+ return
+
+
+@volumes.command('volumes')
+@click.option('--project',default='none',help='Enter Project Tag Name')
+def listvolumes(project):
+ "List Volumes for the associated Instances"
+ instances=filter_instances(project)
+
+ for ec in instances:
+  for vol in ec.volumes.all():
+    print(':'.join((vol.id,vol.state,vol.volume_type))) 
+
+ return 
 
 @cinstances.command('list')
 @click.option('--project',default='none',help='Enter Project Tag name')
@@ -32,7 +103,7 @@ def listinstances(project):
  
  for ec in instances:
   tags = { t['Key']: t['Value'] for t in ec.tags or [] }
-  print(','.join((ec.id,ec.instance_type,ec.state['Name'],ec.public_dns_name,tags.get('Project','<no project>'))))  
+  print(','.join((ec.id,ec.instance_type,ec.state['Name'],ec.public_dns_name,tags.get('Project','<no project>')))) 
 
  return
 
@@ -61,4 +132,4 @@ def startinstances(project):
  return
 
 if __name__ == '__main__':
- cinstances()
+ cli()
